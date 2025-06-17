@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Upload, Plus, Download, Trash2, Edit, Eye, FileSpreadsheet, AlertCircle } from "lucide-react"
+import { Upload, Plus, Download, Trash2, Edit, Eye, FileSpreadsheet, AlertCircle, Globe } from "lucide-react"
 import { generateQRCode } from "@/lib/qr-generator"
 import { generateUniqueToken, downloadQRCode } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
@@ -38,6 +38,18 @@ export function QRGenerator() {
   const [uploadError, setUploadError] = useState<string>("")
   const [uploadSuccess, setUploadSuccess] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Get current base URL for QR generation
+  const getBaseUrl = () => {
+    if (typeof window !== "undefined") {
+      // Force production URL if we're not on localhost
+      if (!window.location.href.includes("localhost")) {
+        return "https://rsvp-app-beryl.vercel.app"
+      }
+      return window.location.origin
+    }
+    return "https://rsvp-app-beryl.vercel.app"
+  }
 
   // Load invitees on component mount
   useEffect(() => {
@@ -228,8 +240,7 @@ export function QRGenerator() {
 
   const downloadSingleQR = async (invitee: Invitee) => {
     try {
-      // Pass the current origin to ensure correct URL in QR
-      const baseUrl = typeof window !== "undefined" ? window.location.origin : undefined
+      const baseUrl = getBaseUrl()
       const qrCode = await generateQRCode(invitee.unique_token, baseUrl)
       downloadQRCode(qrCode, `qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
     } catch (error) {
@@ -240,8 +251,7 @@ export function QRGenerator() {
   const downloadAllQRs = async () => {
     setLoading(true)
     try {
-      // Pass the current origin to ensure correct URL in QR
-      const baseUrl = typeof window !== "undefined" ? window.location.origin : undefined
+      const baseUrl = getBaseUrl()
 
       for (const invitee of invitees) {
         const qrCode = await generateQRCode(invitee.unique_token, baseUrl)
@@ -258,6 +268,17 @@ export function QRGenerator() {
 
   return (
     <div className="space-y-6">
+      {/* URL Info Card */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 text-blue-800">
+            <Globe className="h-5 w-5" />
+            <span className="font-medium">QR codes will redirect to:</span>
+            <code className="bg-blue-100 px-2 py-1 rounded text-sm">{getBaseUrl()}</code>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Add Invitee Section */}
       <Card>
         <CardHeader>

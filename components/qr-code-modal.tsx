@@ -26,9 +26,7 @@ export function QRCodeModal({ invitee, onClose }: QRCodeModalProps) {
   useEffect(() => {
     const generateQR = async () => {
       try {
-        // Use current origin for QR code URL
-        const baseUrl = typeof window !== "undefined" ? window.location.origin : undefined
-        const qrDataURL = await generateQRCode(invitee.unique_token, baseUrl)
+        const qrDataURL = await generateQRCode(invitee.unique_token)
         setQrCode(qrDataURL)
       } catch (error) {
         console.error("Failed to generate QR code:", error)
@@ -47,11 +45,13 @@ export function QRCodeModal({ invitee, onClose }: QRCodeModalProps) {
   }
 
   const copyLink = async () => {
-    const url = `${window.location.origin}/rsvp?id=${invitee.unique_token}`
+    const url = `https://rsvp-app-beryl.vercel.app/rsvp?id=${invitee.unique_token}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const rsvpUrl = `https://rsvp-app-beryl.vercel.app/rsvp?id=${invitee.unique_token}`
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -90,9 +90,7 @@ export function QRCodeModal({ invitee, onClose }: QRCodeModalProps) {
 
           <div className="text-sm text-gray-500 text-center max-w-full">
             <p className="font-medium mb-1">RSVP Link:</p>
-            <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all block">
-              {`${typeof window !== "undefined" ? window.location.origin : ""}/rsvp?id=${invitee.unique_token}`}
-            </code>
+            <code className="bg-gray-100 px-2 py-1 rounded text-xs break-all block">{rsvpUrl}</code>
           </div>
         </div>
       </DialogContent>

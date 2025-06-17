@@ -1,21 +1,11 @@
 import QRCode from "qrcode"
 
-export async function generateQRCode(token: string, baseUrl?: string): Promise<string> {
+export async function generateQRCode(token: string): Promise<string> {
   try {
-    // Determine the base URL with your specific deployment URL as default
-    let appUrl = baseUrl || process.env.NEXT_PUBLIC_APP_URL
+    // HARDCODED PRODUCTION URL - NO MORE VERCEL LOGIN BULLSH*T
+    const url = `https://rsvp-app-beryl.vercel.app/rsvp?id=${token}`
 
-    // If we're in the browser and no baseUrl was provided, use the current origin
-    if (typeof window !== "undefined" && !baseUrl) {
-      appUrl = window.location.origin
-    }
-
-    // Use your specific Vercel deployment URL as fallback
-    if (!appUrl) {
-      appUrl = "https://rsvp-app-beryl.vercel.app"
-    }
-
-    const url = `${appUrl}/rsvp?id=${token}`
+    console.log("QR Code URL:", url) // Debug log
 
     const qrCodeDataURL = await QRCode.toDataURL(url, {
       width: 300,
