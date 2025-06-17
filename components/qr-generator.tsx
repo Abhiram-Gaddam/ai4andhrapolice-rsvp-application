@@ -226,11 +226,25 @@ export function QRGenerator() {
     }
   }
 
+  const downloadSingleQR = async (invitee: Invitee) => {
+    try {
+      // Pass the current origin to ensure correct URL in QR
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : undefined
+      const qrCode = await generateQRCode(invitee.unique_token, baseUrl)
+      downloadQRCode(qrCode, `qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
+    } catch (error) {
+      console.error("Error downloading QR code:", error)
+    }
+  }
+
   const downloadAllQRs = async () => {
     setLoading(true)
     try {
+      // Pass the current origin to ensure correct URL in QR
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : undefined
+
       for (const invitee of invitees) {
-        const qrCode = await generateQRCode(invitee.unique_token)
+        const qrCode = await generateQRCode(invitee.unique_token, baseUrl)
         downloadQRCode(qrCode, `qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
         // Add small delay to prevent browser blocking multiple downloads
         await new Promise((resolve) => setTimeout(resolve, 500))
@@ -239,15 +253,6 @@ export function QRGenerator() {
       console.error("Error downloading QR codes:", error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const downloadSingleQR = async (invitee: Invitee) => {
-    try {
-      const qrCode = await generateQRCode(invitee.unique_token)
-      downloadQRCode(qrCode, `qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
-    } catch (error) {
-      console.error("Error downloading QR code:", error)
     }
   }
 

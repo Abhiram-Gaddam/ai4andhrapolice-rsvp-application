@@ -26,7 +26,9 @@ export function QRCodeModal({ invitee, onClose }: QRCodeModalProps) {
   useEffect(() => {
     const generateQR = async () => {
       try {
-        const qrDataURL = await generateQRCode(invitee.unique_token)
+        // Use current origin for QR code URL
+        const baseUrl = typeof window !== "undefined" ? window.location.origin : undefined
+        const qrDataURL = await generateQRCode(invitee.unique_token, baseUrl)
         setQrCode(qrDataURL)
       } catch (error) {
         console.error("Failed to generate QR code:", error)
