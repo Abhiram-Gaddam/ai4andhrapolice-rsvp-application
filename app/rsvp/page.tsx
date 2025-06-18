@@ -37,7 +37,12 @@ async function RSVPContent({ token }: { token: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <RSVPForm inviteeId={invitee.id} token={token} currentResponse={invitee.rsvp_response} />
+          <RSVPForm
+            inviteeId={invitee.id}
+            token={token}
+            inviteeName={invitee.name}
+            currentResponse={invitee.rsvp_response}
+          />
         </CardContent>
       </Card>
     </div>
