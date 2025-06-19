@@ -28,6 +28,9 @@ interface CompositionSettings {
   namePosition: { x: number; y: number; fontSize: number }
   nameColor: string
   nameFont: string
+  designationPosition?: { x: number; y: number; fontSize: number }
+  designationColor?: string
+  designationFont?: string
 }
 
 interface AddInviteeModalProps {
@@ -104,7 +107,14 @@ export function AddInviteeModal({
       if (autoGenerateInvitation && backgroundImage && composition) {
         try {
           const qrCode = await generateQRCode(uniqueToken)
-          const personalizedImage = await composePersonalizedImage(backgroundImage, qrCode, name.trim(), composition)
+          // FIX: Pass designation to composePersonalizedImage
+          const personalizedImage = await composePersonalizedImage(
+            backgroundImage,
+            qrCode,
+            name.trim(),
+            composition,
+            designation.trim() || null, // Pass designation parameter
+          )
 
           // Auto-download the invitation
           downloadImage(personalizedImage, `invitation-${name.trim().replace(/\s+/g, "-").toLowerCase()}`)

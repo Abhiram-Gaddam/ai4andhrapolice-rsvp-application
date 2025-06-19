@@ -264,7 +264,13 @@ export function QRGenerator() {
       // Generate invitations for all new invitees
       for (const invitee of newInvitees) {
         const qrCode = await generateQRCode(invitee.unique_token)
-        const personalizedImage = await composePersonalizedImage(backgroundImage, qrCode, invitee.name, composition)
+        const personalizedImage = await composePersonalizedImage(
+          backgroundImage,
+          qrCode,
+          invitee.name,
+          composition,
+          invitee.designation || null, // Add designation parameter
+        )
 
         images.push({
           name: `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`,
@@ -442,7 +448,13 @@ export function QRGenerator() {
     try {
       setLoading(true)
       const qrCode = await generateQRCode(invitee.unique_token)
-      const personalizedImage = await composePersonalizedImage(backgroundImage, qrCode, invitee.name, composition)
+      const personalizedImage = await composePersonalizedImage(
+        backgroundImage,
+        qrCode,
+        invitee.name,
+        composition,
+        invitee.designation || null, // Add designation parameter
+      )
       downloadImage(personalizedImage, `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
     } catch (error) {
       console.error("Error generating personalized image:", error)

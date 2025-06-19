@@ -53,10 +53,24 @@ export function ViewInvitationModal({
         },
         nameColor: invitee.custom_text_style?.color || composition.nameColor,
         nameFont: invitee.custom_text_style?.font || composition.nameFont,
+        // FIX: Include designation positioning
+        designationPosition: composition.designationPosition || {
+          x: composition.namePosition.x,
+          y: composition.namePosition.y + 40,
+          fontSize: 20,
+        },
+        designationColor: composition.designationColor || composition.nameColor,
+        designationFont: composition.designationFont || composition.nameFont,
       }
 
-      // Compose invitation image with fixed text positioning
-      const invitation = await composePersonalizedImage(backgroundImage, qrCode, invitee.name, finalComposition)
+      // FIX: Compose invitation image with designation parameter
+      const invitation = await composePersonalizedImage(
+        backgroundImage,
+        qrCode,
+        invitee.name,
+        finalComposition,
+        invitee.designation || null, // Pass designation parameter
+      )
 
       setInvitationImage(invitation)
     } catch (error) {
@@ -130,6 +144,7 @@ export function ViewInvitationModal({
             {/* Invitation Details */}
             <div className="text-sm text-gray-500 text-center">
               <p>High-quality invitation with QR code for {invitee.name}</p>
+              {invitee.designation && <p>Designation: {invitee.designation}</p>}
               <p>Token: {invitee.unique_token}</p>
               {(invitee.custom_qr_position || invitee.custom_name_position) && (
                 <p className="text-blue-600 font-medium">✨ Using custom positioning</p>

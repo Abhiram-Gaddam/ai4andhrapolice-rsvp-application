@@ -99,7 +99,13 @@ export function GeneratorPage({ backgroundImage, composition }: GeneratorPagePro
         const qrCode = await generateQRCode(invitee.unique_token)
 
         // Generate invitation
-        const invitation = await composePersonalizedImage(backgroundImage, qrCode, invitee.name, composition)
+        const invitation = await composePersonalizedImage(
+          backgroundImage,
+          qrCode,
+          invitee.name,
+          composition,
+          invitee.designation || null, // Add designation parameter
+        )
 
         // Create filename with designation if available
         const filename = invitee.designation

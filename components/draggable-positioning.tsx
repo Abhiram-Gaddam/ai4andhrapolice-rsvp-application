@@ -14,6 +14,7 @@ interface DraggablePositioningProps {
   composition: any
   onCompositionChange: (composition: any) => void
   sampleName?: string
+  sampleDesignation?: string
 }
 
 export function DraggablePositioning({
@@ -21,21 +22,36 @@ export function DraggablePositioning({
   composition,
   onCompositionChange,
   sampleName = "John Doe",
+  sampleDesignation = "Manager",
 }: DraggablePositioningProps) {
-  const [isDragging, setIsDragging] = useState<"qr" | "name" | null>(null)
+  const [isDragging, setIsDragging] = useState<"qr" | "name" | "designation" | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleMouseDown = useCallback(
-    (type: "qr" | "name", e: React.MouseEvent) => {
+    (type: "qr" | "name" | "designation", e: React.MouseEvent) => {
       e.preventDefault()
       setIsDragging(type)
 
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
-      const elementX = type === "qr" ? composition.qrPosition.x : composition.namePosition.x
-      const elementY = type === "qr" ? composition.qrPosition.y : composition.namePosition.y
+      let elementX: number, elementY: number
+
+      if (type === "qr") {
+        elementX = composition.qrPosition.x
+        elementY = composition.qrPosition.y
+      } else if (type === "name") {
+        elementX = composition.namePosition.x
+        elementY = composition.namePosition.y
+      } else if (type === "designation") {
+        const designationPos = composition.designationPosition || {
+          x: composition.namePosition.x,
+          y: composition.namePosition.y + 40,
+        }
+        elementX = designationPos.x
+        elementY = designationPos.y
+      }
 
       setDragOffset({
         x: e.clientX - rect.left - elementX,
@@ -53,22 +69,35 @@ export function DraggablePositioning({
       const newX = e.clientX - rect.left - dragOffset.x
       const newY = e.clientY - rect.top - dragOffset.y
 
-      // Constrain to container bounds
-      const maxX = rect.width - (isDragging === "qr" ? composition.qrPosition.size : 200)
-      const maxY = rect.height - (isDragging === "qr" ? composition.qrPosition.size : 30)
-
-      const constrainedX = Math.max(0, Math.min(newX, maxX))
-      const constrainedY = Math.max(0, Math.min(newY, maxY))
-
       if (isDragging === "qr") {
+        const maxX = rect.width - composition.qrPosition.size
+        const maxY = rect.height - composition.qrPosition.size
+        const constrainedX = Math.max(0, Math.min(newX, maxX))
+        const constrainedY = Math.max(0, Math.min(newY, maxY))
+
         onCompositionChange({
           ...composition,
           qrPosition: { ...composition.qrPosition, x: constrainedX, y: constrainedY },
         })
-      } else {
+      } else if (isDragging === "name") {
+        const constrainedX = Math.max(0, Math.min(newX, rect.width - 200))
+        const constrainedY = Math.max(0, Math.min(newY, rect.height - 30))
+
         onCompositionChange({
           ...composition,
           namePosition: { ...composition.namePosition, x: constrainedX, y: constrainedY },
+        })
+      } else if (isDragging === "designation") {
+        const constrainedX = Math.max(0, Math.min(newX, rect.width - 200))
+        const constrainedY = Math.max(0, Math.min(newY, rect.height - 30))
+
+        onCompositionChange({
+          ...composition,
+          designationPosition: {
+            x: constrainedX,
+            y: constrainedY,
+            fontSize: composition.designationPosition?.fontSize || 20,
+          },
         })
       }
     },
@@ -84,7 +113,18 @@ export function DraggablePositioning({
       ...composition,
       qrPosition: { ...composition.qrPosition, x: 50, y: 50 },
       namePosition: { ...composition.namePosition, x: 200, y: 100 },
+      designationPosition: {
+        x: 200,
+        y: 140,
+        fontSize: 20,
+      },
     })
+  }
+
+  const designationPosition = composition.designationPosition || {
+    x: composition.namePosition.x,
+    y: composition.namePosition.y + 40,
+    fontSize: 20,
   }
 
   return (
@@ -93,7 +133,7 @@ export function DraggablePositioning({
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Move className="h-5 w-5" />
-            Drag to Position (Left-Aligned Text)
+            Simple Text Positioning
           </span>
           <Button variant="outline" size="sm" onClick={resetPositions}>
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -103,19 +143,11 @@ export function DraggablePositioning({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* Info Banner */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-800">
-              <strong>Fixed Positioning:</strong> Text will always start from the exact position you set, regardless of
-              name length.
-            </p>
-          </div>
-
           {/* Draggable Preview */}
           <div
             ref={containerRef}
             className="relative border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-crosshair"
-            style={{ height: "400px" }}
+            style={{ height: "500px" }}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
@@ -128,7 +160,7 @@ export function DraggablePositioning({
               draggable={false}
             />
 
-            {/* Draggable QR Code */}
+            {/* QR Code */}
             <div
               className={`absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 cursor-move flex items-center justify-center ${
                 isDragging === "qr" ? "z-20" : "z-10"
@@ -144,49 +176,47 @@ export function DraggablePositioning({
               <div className="text-white text-xs font-bold bg-blue-500 px-2 py-1 rounded">QR CODE</div>
             </div>
 
-            {/* Draggable Name Text - LEFT ALIGNED */}
+            {/* Name Text */}
             <div
-              className={`absolute border-2 border-green-500 bg-green-500 bg-opacity-20 cursor-move flex items-start justify-start min-w-[200px] ${
-                isDragging === "name" ? "z-20" : "z-10"
-              }`}
+              className={`absolute cursor-move ${isDragging === "name" ? "z-20" : "z-10"}`}
               style={{
-                left: `${composition.namePosition.x}px`, // Start exactly here
-                top: `${composition.namePosition.y}px`, // Start exactly here
-                height: "30px",
+                left: `${composition.namePosition.x}px`,
+                top: `${composition.namePosition.y}px`,
                 fontSize: `${Math.min(composition.namePosition.fontSize, 16)}px`,
                 color: composition.nameColor,
                 fontFamily: composition.nameFont,
-                textAlign: "left", // Left align
-                paddingLeft: "2px",
+                fontWeight: "bold",
               }}
               onMouseDown={(e) => handleMouseDown("name", e)}
             >
-              <div className="text-white text-xs font-bold bg-green-500 px-2 py-1 rounded absolute -top-6">
-                NAME (LEFT-ALIGNED)
-              </div>
+              <div className="text-white text-xs font-bold bg-green-500 px-2 py-1 rounded absolute -top-6">NAME</div>
               {sampleName}
             </div>
 
-            {/* Position Markers */}
+            {/* Designation Text */}
             <div
-              className="absolute w-2 h-2 bg-green-600 rounded-full"
+              className={`absolute cursor-move ${isDragging === "designation" ? "z-20" : "z-10"}`}
               style={{
-                left: `${composition.namePosition.x - 4}px`,
-                top: `${composition.namePosition.y - 4}px`,
+                left: `${designationPosition.x}px`,
+                top: `${designationPosition.y}px`,
+                fontSize: `${Math.min(designationPosition.fontSize, 14)}px`,
+                color: composition.designationColor || composition.nameColor,
+                fontFamily: composition.designationFont || composition.nameFont,
+                fontWeight: "bold",
               }}
-              title="Text starts here"
-            />
-
-            {/* Instructions */}
-            <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs p-2 rounded">
-              Text will always START from the green dot position →
+              onMouseDown={(e) => handleMouseDown("designation", e)}
+            >
+              <div className="text-white text-xs font-bold bg-purple-500 px-2 py-1 rounded absolute -top-6">
+                DESIGNATION
+              </div>
+              {sampleDesignation}
             </div>
           </div>
 
-          {/* Manual Position Controls */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Simple Controls */}
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">QR Code Position & Size</Label>
+              <Label className="text-sm font-medium">QR Code</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
@@ -225,11 +255,11 @@ export function DraggablePositioning({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Name Start Position & Font</Label>
+              <Label className="text-sm font-medium">Name</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
-                  placeholder="Start X"
+                  placeholder="X"
                   value={composition.namePosition.x}
                   onChange={(e) =>
                     onCompositionChange({
@@ -240,7 +270,7 @@ export function DraggablePositioning({
                 />
                 <Input
                   type="number"
-                  placeholder="Start Y"
+                  placeholder="Y"
                   value={composition.namePosition.y}
                   onChange={(e) =>
                     onCompositionChange({
@@ -262,59 +292,83 @@ export function DraggablePositioning({
                 />
               </div>
             </div>
-          </div>
 
-          {/* Text Styling */}
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Text Color</Label>
-              <div className="flex gap-2">
+              <Label className="text-sm font-medium">Designation</Label>
+              <div className="grid grid-cols-3 gap-2">
                 <Input
-                  type="color"
-                  value={composition.nameColor}
+                  type="number"
+                  placeholder="X"
+                  value={designationPosition.x}
                   onChange={(e) =>
                     onCompositionChange({
                       ...composition,
-                      nameColor: e.target.value,
+                      designationPosition: {
+                        ...designationPosition,
+                        x: Number.parseInt(e.target.value) || 0,
+                      },
                     })
                   }
-                  className="w-16 h-10"
                 />
                 <Input
-                  type="text"
-                  value={composition.nameColor}
+                  type="number"
+                  placeholder="Y"
+                  value={designationPosition.y}
                   onChange={(e) =>
                     onCompositionChange({
                       ...composition,
-                      nameColor: e.target.value,
+                      designationPosition: {
+                        ...designationPosition,
+                        y: Number.parseInt(e.target.value) || 0,
+                      },
                     })
                   }
-                  placeholder="#000000"
-                  className="flex-1"
+                />
+                <Input
+                  type="number"
+                  placeholder="Font Size"
+                  value={designationPosition.fontSize}
+                  onChange={(e) =>
+                    onCompositionChange({
+                      ...composition,
+                      designationPosition: {
+                        ...designationPosition,
+                        fontSize: Number.parseInt(e.target.value) || 20,
+                      },
+                    })
+                  }
                 />
               </div>
             </div>
+          </div>
+
+          {/* Color Controls */}
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Font Family</Label>
-              <select
-                className="w-full p-2 border rounded"
-                value={composition.nameFont}
+              <Label>Name Color</Label>
+              <Input
+                type="color"
+                value={composition.nameColor}
                 onChange={(e) =>
                   onCompositionChange({
                     ...composition,
-                    nameFont: e.target.value,
+                    nameColor: e.target.value,
                   })
                 }
-              >
-                <option value="Arial">Arial</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Helvetica">Helvetica</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Impact">Impact</option>
-                <option value="Comic Sans MS">Comic Sans MS</option>
-                <option value="Dancing Script">Dancing Script</option>
-              </select>
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Designation Color</Label>
+              <Input
+                type="color"
+                value={composition.designationColor || composition.nameColor}
+                onChange={(e) =>
+                  onCompositionChange({
+                    ...composition,
+                    designationColor: e.target.value,
+                  })
+                }
+              />
             </div>
           </div>
         </div>

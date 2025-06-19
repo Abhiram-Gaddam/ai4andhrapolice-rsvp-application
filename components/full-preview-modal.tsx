@@ -25,6 +25,7 @@ export function FullPreviewModal({
   const [previewImage, setPreviewImage] = useState<string>("")
   const [loading, setLoading] = useState(true)
   const [customSampleName, setCustomSampleName] = useState(sampleName)
+  const [customSampleDesignation, setCustomSampleDesignation] = useState("Senior Software Development Manager")
 
   const generatePreview = async () => {
     setLoading(true)
@@ -40,10 +41,21 @@ export function FullPreviewModal({
           textAlign: "left", // Ensure left alignment
           textBaseline: "top", // Anchor at top-left
         },
+        designationPosition: composition.designationPosition || {
+          x: composition.namePosition.x,
+          y: composition.namePosition.y + 40,
+          fontSize: 20,
+        },
       }
 
-      // Compose preview image with fixed positioning
-      const preview = await composePersonalizedImage(backgroundImage, sampleQR, customSampleName, fixedComposition)
+      // Compose preview image with fixed positioning - INCLUDE SAMPLE DESIGNATION
+      const preview = await composePersonalizedImage(
+        backgroundImage,
+        sampleQR,
+        customSampleName,
+        fixedComposition,
+        customSampleDesignation, // Use custom designation
+      )
       setPreviewImage(preview)
     } catch (error) {
       console.error("Failed to generate preview:", error)
@@ -54,7 +66,7 @@ export function FullPreviewModal({
 
   useEffect(() => {
     generatePreview()
-  }, [backgroundImage, composition, customSampleName])
+  }, [backgroundImage, composition, customSampleName, customSampleDesignation])
 
   const downloadPreview = () => {
     if (previewImage) {
@@ -93,7 +105,18 @@ export function FullPreviewModal({
                 <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">Try different length names to verify positioning stays fixed</p>
+
+            <Label htmlFor="sampleDesignation" className="text-sm font-medium mt-3 block">
+              Test with different designation:
+            </Label>
+            <Input
+              id="sampleDesignation"
+              value={customSampleDesignation}
+              onChange={(e) => setCustomSampleDesignation(e.target.value)}
+              placeholder="Enter a long designation to test wrapping"
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-500 mt-1">Try long designations to see auto-wrapping in action</p>
           </div>
 
           {/* Preview Image */}
