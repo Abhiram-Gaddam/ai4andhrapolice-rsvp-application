@@ -22,6 +22,7 @@ import {
   ImageIcon,
   Package,
   FileArchive,
+  ArrowLeft,
 } from "lucide-react"
 import { generateQRCode } from "@/lib/qr-generator"
 import { generateUniqueToken, downloadQRCode } from "@/lib/utils"
@@ -36,6 +37,7 @@ import { DraggablePositioning } from "@/components/draggable-positioning"
 import { ViewInvitationModal } from "@/components/view-invitation-modal"
 import { BulkDownloadModal } from "@/components/bulk-download-modal"
 import { composePersonalizedImage, downloadImage } from "@/lib/image-composer"
+import Link from "next/link"
 
 interface Invitee {
   id: string
@@ -43,6 +45,7 @@ interface Invitee {
   unique_token: string
   qr_scanned: boolean
   rsvp_response: string | null
+  designation?: string | null
 }
 
 interface CompositionSettings {
@@ -107,6 +110,20 @@ export function QRGenerator() {
       const savedComposition = localStorage.getItem(STORAGE_KEYS.COMPOSITION)
       if (savedComposition) {
         const parsedComposition = JSON.parse(savedComposition)
+        // Validate nameFont to include all options from DraggablePositioning
+        const validFonts = [
+          "Arial",
+          "Georgia",
+          "Times New Roman",
+          "Helvetica",
+          "Verdana",
+          "Impact",
+          "Comic Sans MS",
+          "Dancing Script",
+        ]
+        if (!validFonts.includes(parsedComposition.nameFont)) {
+          parsedComposition.nameFont = "Arial" // Fallback to Arial if invalid
+        }
         setComposition(parsedComposition)
       }
 
@@ -156,6 +173,20 @@ export function QRGenerator() {
   }
 
   const handleCompositionChange = (newComposition: CompositionSettings) => {
+    // Validate nameFont to ensure only allowed fonts are set
+    const validFonts = [
+      "Arial",
+      "Georgia",
+      "Times New Roman",
+      "Helvetica",
+      "Verdana",
+      "Impact",
+      "Comic Sans MS",
+      "Dancing Script",
+    ]
+    if (!validFonts.includes(newComposition.nameFont)) {
+      newComposition.nameFont = "Arial" // Fallback to Arial
+    }
     setComposition(newComposition)
   }
 
@@ -175,26 +206,26 @@ export function QRGenerator() {
       let skippedCount = 0
       const newInvitees: Invitee[] = []
 
-      for (const invitee of parsedInvitees) {
-        if (invitee.name && invitee.name.trim()) {
+      for (const parsedInvitee of parsedInvitees) {
+        if (parsedInvitee.name && parsedInvitee.name.trim()) {
           const uniqueToken = generateUniqueToken()
 
           const { data, error } = await supabase
             .from("invitees")
             .insert({
-              name: invitee.name.trim(),
+              name: parsedInvitee.name.trim(),
               unique_token: uniqueToken,
+              designation: parsedInvitee.designation?.trim() || null,
             })
             .select()
             .single()
 
           if (!error && data) {
-            setInvitees((prev) => [...prev, data])
             newInvitees.push(data)
             addedCount++
           } else {
             skippedCount++
-            console.error("Error adding invitee:", invitee.name, error)
+            console.error("Error adding invitee:", parsedInvitee.name, error)
           }
         } else {
           skippedCount++
@@ -202,11 +233,12 @@ export function QRGenerator() {
       }
 
       if (addedCount > 0) {
+        setInvitees((prev) => [...prev, ...newInvitees])
         setUploadSuccess(
           `Successfully added ${addedCount} invitees${skippedCount > 0 ? ` (${skippedCount} skipped)` : ""}`,
         )
 
-        // 🚀 AUTO-GENERATE INVITATIONS if background image exists
+        // AUTO-GENERATE INVITATIONS if background image exists
         if (backgroundImage && newInvitees.length > 0) {
           setTimeout(() => autoGenerateInvitations(newInvitees), 1000)
         }
@@ -221,7 +253,7 @@ export function QRGenerator() {
     }
   }
 
-  // 🚀 AUTO-GENERATION FEATURE
+  // AUTO-GENERATION FEATURE
   const autoGenerateInvitations = async (newInvitees: Invitee[]) => {
     if (!backgroundImage || newInvitees.length === 0) return
 
@@ -395,7 +427,7 @@ export function QRGenerator() {
       URL.revokeObjectURL(link.href)
     } catch (error) {
       console.error("Error downloading all QR codes:", error)
-      alert("Failed to download QR codes")
+      setUploadError("Failed to download QR codes")
     } finally {
       setLoading(false)
     }
@@ -403,7 +435,7 @@ export function QRGenerator() {
 
   const downloadPersonalizedImage = async (invitee: Invitee) => {
     if (!backgroundImage) {
-      alert("Please upload a background image first")
+      setUploadError("Please upload a background image first")
       return
     }
 
@@ -414,7 +446,7 @@ export function QRGenerator() {
       downloadImage(personalizedImage, `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
     } catch (error) {
       console.error("Error generating personalized image:", error)
-      alert("Failed to generate personalized image")
+      setUploadError("Failed to generate personalized image")
     } finally {
       setLoading(false)
     }
@@ -453,6 +485,16 @@ export function QRGenerator() {
 
   return (
     <div className="space-y-6">
+      {/* Back to Home Button */}
+      <div className="flex justify-start">
+        <Link href="/">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+
       {/* URL Info Card */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-6">
@@ -544,7 +586,7 @@ export function QRGenerator() {
                     • <strong>Column A:</strong> Invitee Name (required)
                   </li>
                   <li>
-                    • <strong>Column B:</strong> Email (optional)
+                    • <strong>Column B:</strong> Designation (optional)
                   </li>
                   <li>• First row should contain headers (will be skipped)</li>
                   <li>• Supported formats: .csv, .xlsx, .xls</li>
@@ -552,7 +594,7 @@ export function QRGenerator() {
               </div>
             </div>
 
-            {/* 🚀 AUTO-GENERATION STATUS */}
+            {/* AUTO-GENERATION STATUS */}
             {backgroundImage ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-start gap-2">
@@ -620,6 +662,7 @@ export function QRGenerator() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Designation</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>RSVP</TableHead>
                   <TableHead>Actions</TableHead>
@@ -629,6 +672,13 @@ export function QRGenerator() {
                 {invitees.map((invitee) => (
                   <TableRow key={invitee.id}>
                     <TableCell className="font-medium">{invitee.name}</TableCell>
+                    <TableCell>
+                      {invitee.designation ? (
+                        <Badge variant="outline">{invitee.designation}</Badge>
+                      ) : (
+                        <span className="text-gray-400 italic">Not specified</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={invitee.qr_scanned ? "default" : "secondary"}>
                         {invitee.qr_scanned ? "Scanned" : "Not Scanned"}

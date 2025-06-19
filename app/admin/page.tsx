@@ -10,10 +10,9 @@ async function getInvitees() {
     console.error("Error fetching invitees:", error)
     return []
   }
-
+  // console.log('this is desi',invitees.designation)
   return invitees || []
 }
-
 export default async function AdminPage() {
   const invitees = await getInvitees()
 

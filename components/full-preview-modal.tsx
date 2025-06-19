@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { generateQRCode } from "@/lib/qr-generator"
 import { composePersonalizedImage } from "@/lib/image-composer"
 import { Eye, Download, RefreshCw } from "lucide-react"
@@ -22,6 +24,7 @@ export function FullPreviewModal({
 }: FullPreviewModalProps) {
   const [previewImage, setPreviewImage] = useState<string>("")
   const [loading, setLoading] = useState(true)
+  const [customSampleName, setCustomSampleName] = useState(sampleName)
 
   const generatePreview = async () => {
     setLoading(true)
@@ -29,8 +32,18 @@ export function FullPreviewModal({
       // Generate sample QR code
       const sampleQR = await generateQRCode("sample-token-preview")
 
-      // Compose preview image
-      const preview = await composePersonalizedImage(backgroundImage, sampleQR, sampleName, composition)
+      // Use fixed positioning composition (left-aligned text)
+      const fixedComposition = {
+        ...composition,
+        namePosition: {
+          ...composition.namePosition,
+          textAlign: "left", // Ensure left alignment
+          textBaseline: "top", // Anchor at top-left
+        },
+      }
+
+      // Compose preview image with fixed positioning
+      const preview = await composePersonalizedImage(backgroundImage, sampleQR, customSampleName, fixedComposition)
       setPreviewImage(preview)
     } catch (error) {
       console.error("Failed to generate preview:", error)
@@ -41,7 +54,7 @@ export function FullPreviewModal({
 
   useEffect(() => {
     generatePreview()
-  }, [backgroundImage, composition, sampleName])
+  }, [backgroundImage, composition, customSampleName])
 
   const downloadPreview = () => {
     if (previewImage) {
@@ -63,6 +76,26 @@ export function FullPreviewModal({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Sample Name Input */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <Label htmlFor="sampleName" className="text-sm font-medium">
+              Test with different name:
+            </Label>
+            <div className="flex gap-2 mt-2">
+              <Input
+                id="sampleName"
+                value={customSampleName}
+                onChange={(e) => setCustomSampleName(e.target.value)}
+                placeholder="Enter a name to test positioning"
+                className="flex-1"
+              />
+              <Button onClick={generatePreview} disabled={loading} size="sm">
+                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Try different length names to verify positioning stays fixed</p>
+          </div>
+
           {/* Preview Image */}
           <div className="flex justify-center">
             {loading ? (
@@ -85,7 +118,7 @@ export function FullPreviewModal({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p>
-                  <strong>Sample Name:</strong> {sampleName}
+                  <strong>Sample Name:</strong> {customSampleName}
                 </p>
                 <p>
                   <strong>QR Position:</strong> X:{composition.qrPosition.x}, Y:{composition.qrPosition.y}
@@ -102,7 +135,7 @@ export function FullPreviewModal({
                   <strong>Font Size:</strong> {composition.namePosition.fontSize}px
                 </p>
                 <p>
-                  <strong>Font Color:</strong> {composition.nameColor}
+                  <strong>Text Alignment:</strong> Left-anchored (fixed position)
                 </p>
               </div>
             </div>

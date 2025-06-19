@@ -24,3 +24,5 @@ CREATE INDEX IF NOT EXISTS idx_invitees_unique_token ON invitees(unique_token);
 CREATE INDEX IF NOT EXISTS idx_invitees_rsvp_response ON invitees(rsvp_response);
 CREATE INDEX IF NOT EXISTS idx_invitees_qr_scanned ON invitees(qr_scanned);
 CREATE INDEX IF NOT EXISTS idx_deletion_log_deleted_at ON deletion_log(deleted_at);
+
+

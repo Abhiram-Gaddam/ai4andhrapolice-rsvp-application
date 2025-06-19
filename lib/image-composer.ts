@@ -60,8 +60,10 @@ export async function composePersonalizedImage(
         // Enhanced text rendering with premium quality
         ctx.font = `bold ${composition.namePosition.fontSize}px ${composition.nameFont}`
         ctx.fillStyle = composition.nameColor
-        ctx.textAlign = "center"
-        ctx.textBaseline = "middle"
+
+        // 🎯 KEY FIX: LEFT-ALIGNED TEXT POSITIONING
+        ctx.textAlign = "left" // Text starts from X position (not centered)
+        ctx.textBaseline = "top" // Text starts from Y position (not middle)
 
         // Premium text outline for maximum readability
         ctx.strokeStyle = "rgba(255, 255, 255, 0.9)"
@@ -74,7 +76,7 @@ export async function composePersonalizedImage(
         ctx.shadowOffsetX = 1
         ctx.shadowOffsetY = 1
 
-        // Fill the text with premium quality
+        // Fill the text with premium quality - STARTS AT EXACT POSITION
         ctx.fillText(inviteeName, composition.namePosition.x, composition.namePosition.y)
 
         // Reset shadow

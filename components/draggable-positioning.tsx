@@ -54,7 +54,7 @@ export function DraggablePositioning({
       const newY = e.clientY - rect.top - dragOffset.y
 
       // Constrain to container bounds
-      const maxX = rect.width - (isDragging === "qr" ? composition.qrPosition.size : 100)
+      const maxX = rect.width - (isDragging === "qr" ? composition.qrPosition.size : 200)
       const maxY = rect.height - (isDragging === "qr" ? composition.qrPosition.size : 30)
 
       const constrainedX = Math.max(0, Math.min(newX, maxX))
@@ -93,7 +93,7 @@ export function DraggablePositioning({
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Move className="h-5 w-5" />
-            Drag to Position
+            Drag to Position (Left-Aligned Text)
           </span>
           <Button variant="outline" size="sm" onClick={resetPositions}>
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -103,6 +103,14 @@ export function DraggablePositioning({
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* Info Banner */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-800">
+              <strong>Fixed Positioning:</strong> Text will always start from the exact position you set, regardless of
+              name length.
+            </p>
+          </div>
+
           {/* Draggable Preview */}
           <div
             ref={containerRef}
@@ -136,28 +144,42 @@ export function DraggablePositioning({
               <div className="text-white text-xs font-bold bg-blue-500 px-2 py-1 rounded">QR CODE</div>
             </div>
 
-            {/* Draggable Name Text */}
+            {/* Draggable Name Text - LEFT ALIGNED */}
             <div
-              className={`absolute border-2 border-green-500 bg-green-500 bg-opacity-20 cursor-move flex items-center justify-center min-w-[100px] ${
+              className={`absolute border-2 border-green-500 bg-green-500 bg-opacity-20 cursor-move flex items-start justify-start min-w-[200px] ${
                 isDragging === "name" ? "z-20" : "z-10"
               }`}
               style={{
-                left: `${composition.namePosition.x - 50}px`, // Center the text box
-                top: `${composition.namePosition.y - 15}px`,
+                left: `${composition.namePosition.x}px`, // Start exactly here
+                top: `${composition.namePosition.y}px`, // Start exactly here
                 height: "30px",
                 fontSize: `${Math.min(composition.namePosition.fontSize, 16)}px`,
                 color: composition.nameColor,
                 fontFamily: composition.nameFont,
+                textAlign: "left", // Left align
+                paddingLeft: "2px",
               }}
               onMouseDown={(e) => handleMouseDown("name", e)}
             >
-              <div className="text-white text-xs font-bold bg-green-500 px-2 py-1 rounded absolute -top-6">NAME</div>
+              <div className="text-white text-xs font-bold bg-green-500 px-2 py-1 rounded absolute -top-6">
+                NAME (LEFT-ALIGNED)
+              </div>
               {sampleName}
             </div>
 
+            {/* Position Markers */}
+            <div
+              className="absolute w-2 h-2 bg-green-600 rounded-full"
+              style={{
+                left: `${composition.namePosition.x - 4}px`,
+                top: `${composition.namePosition.y - 4}px`,
+              }}
+              title="Text starts here"
+            />
+
             {/* Instructions */}
             <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white text-xs p-2 rounded">
-              Drag the blue QR box and green name box to position them
+              Text will always START from the green dot position →
             </div>
           </div>
 
@@ -203,11 +225,11 @@ export function DraggablePositioning({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Name Position & Font</Label>
+              <Label className="text-sm font-medium">Name Start Position & Font</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
-                  placeholder="X"
+                  placeholder="Start X"
                   value={composition.namePosition.x}
                   onChange={(e) =>
                     onCompositionChange({
@@ -218,7 +240,7 @@ export function DraggablePositioning({
                 />
                 <Input
                   type="number"
-                  placeholder="Y"
+                  placeholder="Start Y"
                   value={composition.namePosition.y}
                   onChange={(e) =>
                     onCompositionChange({
@@ -291,6 +313,7 @@ export function DraggablePositioning({
                 <option value="Verdana">Verdana</option>
                 <option value="Impact">Impact</option>
                 <option value="Comic Sans MS">Comic Sans MS</option>
+                <option value="Dancing Script">Dancing Script</option>
               </select>
             </div>
           </div>

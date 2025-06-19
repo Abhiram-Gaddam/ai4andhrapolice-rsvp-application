@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Download, QrCode, History, RefreshCw, AlertCircle } from "lucide-react"
+import { Search, Download, QrCode, History, RefreshCw, AlertCircle, ArrowLeft } from "lucide-react"
 import { QRCodeModal } from "@/components/qr-code-modal"
 import { createClientSideClient } from "@/lib/supabase"
 import Link from "next/link"
@@ -16,6 +16,7 @@ import Link from "next/link"
 interface Invitee {
   id: string
   name: string
+  designation?: string | null
   unique_token: string
   qr_scanned: boolean
   rsvp_response: string | null
@@ -27,21 +28,26 @@ interface AdminDashboardProps {
   initialInvitees?: Invitee[]
 }
 
+const STATIC_PASSWORD = "admin123"
+
 export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
   const [invitees, setInvitees] = useState<Invitee[]>(initialInvitees || [])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedInvitee, setSelectedInvitee] = useState<Invitee | null>(null)
   const [loading, setLoading] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null) // Start as null
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState("")
   const [isInitialized, setIsInitialized] = useState(false)
-  const [isMounted, setIsMounted] = useState(false) // Track if component is mounted
+  const [isMounted, setIsMounted] = useState(false)
+  const [passwordInput, setPasswordInput] = useState("")
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
 
   // Set mounted state after hydration
   useEffect(() => {
     setIsMounted(true)
-    setLastUpdated(new Date()) // Set initial timestamp only after mounting
+    setLastUpdated(new Date())
   }, [])
 
   const refreshData = useCallback(async () => {
@@ -135,8 +141,9 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
         console.warn("Invalid invitee object:", invitee)
         return false
       }
-
-      const matchesSearch = invitee.name.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesSearch =
+        invitee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (invitee.designation && invitee.designation.toLowerCase().includes(searchTerm.toLowerCase()))
 
       const matchesStatus =
         statusFilter === "all" ||
@@ -171,12 +178,13 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
       return
     }
 
-    const headers = ["Name", "QR Scanned", "RSVP Response", "Response Date", "Created Date"]
+    const headers = ["Name", "Designation", "QR Scanned", "RSVP Response", "Response Date", "Created Date"]
     const csvContent = [
       headers.join(","),
       ...filteredInvitees.map((invitee) =>
         [
           `"${invitee.name || ""}"`,
+          `"${invitee.designation || ""}"`,
           invitee.qr_scanned ? "Yes" : "No",
           invitee.rsvp_response || "Pending",
           invitee.rsvp_timestamp ? new Date(invitee.rsvp_timestamp).toLocaleDateString() : "",
@@ -192,6 +200,59 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
     a.download = `rsvp-responses-${new Date().toISOString().split("T")[0]}.csv`
     a.click()
     window.URL.revokeObjectURL(url)
+  }
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (passwordInput === STATIC_PASSWORD) {
+      setIsAuthenticated(true)
+      setPasswordError("")
+    } else {
+      setPasswordError("Incorrect password. Please try again.")
+      setPasswordInput("")
+    }
+  }
+
+  // Show password prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto p-6 flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Admin Access</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Enter Password
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Password"
+                  className="mt-1"
+                />
+                {passwordError && (
+                  <p className="mt-2 text-sm text-red-600">{passwordError}</p>
+                )}
+              </div>
+              <Button type="submit" className="w-full">
+                Submit
+              </Button>
+              <Link href="/">
+                <Button variant="outline" className="w-full mt-2">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   // Show loading state while initializing or not mounted
@@ -216,12 +277,17 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
             <p className="text-gray-600">Monitor RSVP responses and manage your event data.</p>
           </div>
-          <div className="text-right">
+          <div className="text-right flex items-center gap-2">
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
             <Button onClick={refreshData} disabled={loading} variant="outline" size="sm" className="mb-2">
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-            {/* Only show timestamp after component is mounted */}
             {lastUpdated && <p className="text-xs text-gray-500">Last updated: {lastUpdated.toLocaleTimeString()}</p>}
           </div>
         </div>
@@ -307,7 +373,7 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search by name..."
+            placeholder="Search by name or designation..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -359,6 +425,7 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Designation</TableHead>
                 <TableHead>QR Code</TableHead>
                 <TableHead>Scanned</TableHead>
                 <TableHead>RSVP Status</TableHead>
@@ -369,7 +436,7 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
             <TableBody>
               {!Array.isArray(filteredInvitees) || filteredInvitees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                     {searchTerm || statusFilter !== "all"
                       ? "No invitees match your current filters"
                       : stats.total === 0
@@ -381,6 +448,15 @@ export function AdminDashboard({ initialInvitees = [] }: AdminDashboardProps) {
                 filteredInvitees.map((invitee) => (
                   <TableRow key={invitee.id}>
                     <TableCell className="font-medium">{invitee.name || "Unknown"}</TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {invitee.designation ? (
+                        <Badge variant="outline" className="text-xs">
+                          {invitee.designation}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400 italic">Not specified</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Button variant="outline" size="sm" onClick={() => setSelectedInvitee(invitee)}>
                         <QrCode className="h-4 w-4" />

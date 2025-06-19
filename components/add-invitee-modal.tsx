@@ -17,7 +17,7 @@ import { composePersonalizedImage, downloadImage } from "@/lib/image-composer"
 interface Invitee {
   id: string
   name: string
-  email?: string | null
+  designation?: string | null
   unique_token: string
   qr_scanned: boolean
   rsvp_response: string | null
@@ -46,7 +46,7 @@ export function AddInviteeModal({
   autoGenerateInvitation = false,
 }: AddInviteeModalProps) {
   const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
+  const [designation, setDesignation] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
@@ -67,15 +67,15 @@ export function AddInviteeModal({
       const supabase = createClientSideClient()
       const uniqueToken = generateUniqueToken()
 
-      // Prepare the data to insert - only include email if it has a value
+      // Prepare the data to insert - only include email and designation if they have values
       const insertData: any = {
         name: name.trim(),
         unique_token: uniqueToken,
       }
 
-      // Only add email if it's not empty
-      if (email.trim()) {
-        insertData.email = email.trim()
+      // Only add designation if it's not empty
+      if (designation.trim()) {
+        insertData.designation = designation.trim()
       }
 
       console.log("Attempting to insert:", insertData)
@@ -125,7 +125,7 @@ export function AddInviteeModal({
 
       // Reset form
       setName("")
-      setEmail("")
+      setDesignation("")
 
       // Close modal after 2 seconds
       setTimeout(() => {
@@ -179,14 +179,13 @@ export function AddInviteeModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email (optional)</Label>
+            <Label htmlFor="designation">Designation (optional)</Label>
             <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="designation"
+              value={designation}
+              onChange={(e) => setDesignation(e.target.value)}
               disabled={loading}
-              placeholder="Enter email address"
+              placeholder="Enter designation (e.g., Manager, Developer)"
               maxLength={255}
             />
           </div>
