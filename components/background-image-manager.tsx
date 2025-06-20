@@ -81,7 +81,7 @@ export function BackgroundImageManager({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ImageIcon className="h-5 w-5" />
-            Background Image
+            Background Image for Name-Invitation
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -181,7 +181,7 @@ export function BackgroundImageManager({
                 <Card className="p-4">
                   <h4 className="font-medium mb-3 flex items-center gap-2">
                     <Palette className="w-4 h-4" />
-                    Name Text Position
+                    Name-Invitation Text Position
                   </h4>
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
@@ -238,7 +238,7 @@ export function BackgroundImageManager({
               {/* Text Styling */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Text Color</Label>
+                  <Label>Name-Invitation Text Color</Label>
                   <div className="flex gap-2">
                     <Input
                       type="color"
@@ -266,7 +266,7 @@ export function BackgroundImageManager({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Font Family</Label>
+                  <Label>Name-Invitation Font Family</Label>
                   <select
                     className="w-full p-2 border rounded"
                     value={composition.nameFont}
@@ -284,6 +284,77 @@ export function BackgroundImageManager({
                     <option value="Verdana">Verdana</option>
                     <option value="Impact">Impact</option>
                     <option value="Comic Sans MS">Comic Sans MS</option>
+                    <option value="Trajan Pro">Trajan Pro (Premium)</option>
+                    <option value="Optima">Optima</option>
+                    <option value="Copperplate">Copperplate</option>
+                    <option value="Engravers MT">Engravers MT</option>
+                    <option value="Cinzel">Cinzel (Google Fonts)</option>
+                    <option value="Cormorant Garamond">Cormorant Garamond</option>
+                    <option value="Playfair Display">Playfair Display</option>
+                    <option value="Crimson Text">Crimson Text</option>
+                    <option value="EB Garamond">EB Garamond</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Designation Styling */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Designation-Invitation Text Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={composition.designationColor || composition.nameColor}
+                      onChange={(e) =>
+                        onCompositionChange({
+                          ...composition,
+                          designationColor: e.target.value,
+                        })
+                      }
+                      className="w-16 h-10"
+                    />
+                    <Input
+                      type="text"
+                      value={composition.designationColor || composition.nameColor}
+                      onChange={(e) =>
+                        onCompositionChange({
+                          ...composition,
+                          designationColor: e.target.value,
+                        })
+                      }
+                      placeholder="#000000"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Designation-Invitation Font Family</Label>
+                  <select
+                    className="w-full p-2 border rounded"
+                    value={composition.designationFont || composition.nameFont}
+                    onChange={(e) =>
+                      onCompositionChange({
+                        ...composition,
+                        designationFont: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="Arial">Arial</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Impact">Impact</option>
+                    <option value="Comic Sans MS">Comic Sans MS</option>
+                    <option value="Trajan Pro">Trajan Pro (Premium)</option>
+                    <option value="Optima">Optima</option>
+                    <option value="Copperplate">Copperplate</option>
+                    <option value="Engravers MT">Engravers MT</option>
+                    <option value="Cinzel">Cinzel (Google Fonts)</option>
+                    <option value="Cormorant Garamond">Cormorant Garamond</option>
+                    <option value="Playfair Display">Playfair Display</option>
+                    <option value="Crimson Text">Crimson Text</option>
+                    <option value="EB Garamond">EB Garamond</option>
                   </select>
                 </div>
               </div>
@@ -302,7 +373,7 @@ export function BackgroundImageManager({
               onDragLeave={() => setDragOver(false)}
             >
               <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700 mb-2">Upload Background Image</p>
+              <p className="text-lg font-medium text-gray-700 mb-2">Upload Background Image for Name-Invitation</p>
               <p className="text-gray-500 mb-4">Drag and drop an image here, or click to browse</p>
               <Button onClick={() => fileInputRef.current?.click()}>Choose Image</Button>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />

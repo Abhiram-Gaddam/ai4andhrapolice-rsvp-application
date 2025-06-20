@@ -120,6 +120,15 @@ export function QRGenerator() {
           "Impact",
           "Comic Sans MS",
           "Dancing Script",
+          "Trajan Pro",
+          "Optima",
+          "Copperplate",
+          "Engravers MT",
+          "Cinzel",
+          "Cormorant Garamond",
+          "Playfair Display",
+          "Crimson Text",
+          "EB Garamond",
         ]
         if (!validFonts.includes(parsedComposition.nameFont)) {
           parsedComposition.nameFont = "Arial" // Fallback to Arial if invalid
@@ -183,6 +192,15 @@ export function QRGenerator() {
       "Impact",
       "Comic Sans MS",
       "Dancing Script",
+      "Trajan Pro",
+      "Optima",
+      "Copperplate",
+      "Engravers MT",
+      "Cinzel",
+      "Cormorant Garamond",
+      "Playfair Display",
+      "Crimson Text",
+      "EB Garamond",
     ]
     if (!validFonts.includes(newComposition.nameFont)) {
       newComposition.nameFont = "Arial" // Fallback to Arial
@@ -273,7 +291,7 @@ export function QRGenerator() {
         )
 
         images.push({
-          name: `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`,
+          name: `${invitee.name.replace(/\s+/g, "-").toLowerCase()}-invitation`,
           dataUrl: personalizedImage,
         })
       }
@@ -398,7 +416,7 @@ export function QRGenerator() {
   const downloadSingleQR = async (invitee: Invitee) => {
     try {
       const qrCode = await generateQRCode(invitee.unique_token)
-      downloadQRCode(qrCode, `qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
+      downloadQRCode(qrCode, `${invitee.name.replace(/\s+/g, "-").toLowerCase()}-qr`)
     } catch (error) {
       console.error("Error downloading QR code:", error)
     }
@@ -421,7 +439,7 @@ export function QRGenerator() {
         const response = await fetch(qrCode)
         const blob = await response.blob()
 
-        zip.file(`qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}.png`, blob)
+        zip.file(`${invitee.name.replace(/\s+/g, "-").toLowerCase()}-qr.png`, blob)
       }
 
       // Generate and download ZIP
@@ -455,7 +473,7 @@ export function QRGenerator() {
         composition,
         invitee.designation || null, // Add designation parameter
       )
-      downloadImage(personalizedImage, `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
+      downloadImage(personalizedImage, `${invitee.name.replace(/\s+/g, "-").toLowerCase()}-invitation`)
     } catch (error) {
       console.error("Error generating personalized image:", error)
       setUploadError("Failed to generate personalized image")

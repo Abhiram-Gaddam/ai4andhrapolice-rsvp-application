@@ -24,12 +24,12 @@ export function DraggablePositioning({
   sampleName = "John Doe",
   sampleDesignation = "Manager",
 }: DraggablePositioningProps) {
-  const [isDragging, setIsDragging] = useState<"qr" | "name" | "designation" | null>(null)
+  const [isDragging, setIsDragging] = useState<"qr" | "name-invitation" | "designation-invitation" | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
   const handleMouseDown = useCallback(
-    (type: "qr" | "name" | "designation", e: React.MouseEvent) => {
+    (type: "qr" | "name-invitation" | "designation-invitation", e: React.MouseEvent) => {
       e.preventDefault()
       setIsDragging(type)
 
@@ -41,10 +41,10 @@ export function DraggablePositioning({
       if (type === "qr") {
         elementX = composition.qrPosition.x
         elementY = composition.qrPosition.y
-      } else if (type === "name") {
+      } else if (type === "name-invitation") {
         elementX = composition.namePosition.x
         elementY = composition.namePosition.y
-      } else if (type === "designation") {
+      } else if (type === "designation-invitation") {
         const designationPos = composition.designationPosition || {
           x: composition.namePosition.x,
           y: composition.namePosition.y + 40,
@@ -79,7 +79,7 @@ export function DraggablePositioning({
           ...composition,
           qrPosition: { ...composition.qrPosition, x: constrainedX, y: constrainedY },
         })
-      } else if (isDragging === "name") {
+      } else if (isDragging === "name-invitation") {
         const constrainedX = Math.max(0, Math.min(newX, rect.width - 200))
         const constrainedY = Math.max(0, Math.min(newY, rect.height - 30))
 
@@ -87,7 +87,7 @@ export function DraggablePositioning({
           ...composition,
           namePosition: { ...composition.namePosition, x: constrainedX, y: constrainedY },
         })
-      } else if (isDragging === "designation") {
+      } else if (isDragging === "designation-invitation") {
         const constrainedX = Math.max(0, Math.min(newX, rect.width - 200))
         const constrainedY = Math.max(0, Math.min(newY, rect.height - 30))
 
@@ -133,7 +133,7 @@ export function DraggablePositioning({
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Move className="h-5 w-5" />
-            Simple Text Positioning
+            Name-Invitation Text Positioning
           </span>
           <Button variant="outline" size="sm" onClick={resetPositions}>
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -176,9 +176,9 @@ export function DraggablePositioning({
               <div className="text-white text-xs font-bold bg-blue-500 px-2 py-1 rounded">QR CODE</div>
             </div>
 
-            {/* Name Text */}
+            {/* Name-Invitation Text */}
             <div
-              className={`absolute cursor-move ${isDragging === "name" ? "z-20" : "z-10"}`}
+              className={`absolute cursor-move ${isDragging === "name-invitation" ? "z-20" : "z-10"}`}
               style={{
                 left: `${composition.namePosition.x}px`,
                 top: `${composition.namePosition.y}px`,
@@ -187,15 +187,15 @@ export function DraggablePositioning({
                 fontFamily: composition.nameFont,
                 fontWeight: "bold",
               }}
-              onMouseDown={(e) => handleMouseDown("name", e)}
+              onMouseDown={(e) => handleMouseDown("name-invitation", e)}
             >
               <div className="text-white text-xs font-bold bg-green-500 px-2 py-1 rounded absolute -top-6">NAME</div>
               {sampleName}
             </div>
 
-            {/* Designation Text */}
+            {/* Designation-Invitation Text */}
             <div
-              className={`absolute cursor-move ${isDragging === "designation" ? "z-20" : "z-10"}`}
+              className={`absolute cursor-move ${isDragging === "designation-invitation" ? "z-20" : "z-10"}`}
               style={{
                 left: `${designationPosition.x}px`,
                 top: `${designationPosition.y}px`,
@@ -204,7 +204,7 @@ export function DraggablePositioning({
                 fontFamily: composition.designationFont || composition.nameFont,
                 fontWeight: "bold",
               }}
-              onMouseDown={(e) => handleMouseDown("designation", e)}
+              onMouseDown={(e) => handleMouseDown("designation-invitation", e)}
             >
               <div className="text-white text-xs font-bold bg-purple-500 px-2 py-1 rounded absolute -top-6">
                 DESIGNATION
@@ -255,7 +255,7 @@ export function DraggablePositioning({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Name</Label>
+              <Label className="text-sm font-medium">Name-Invitation</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
@@ -294,7 +294,7 @@ export function DraggablePositioning({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Designation</Label>
+              <Label className="text-sm font-medium">Designation-Invitation</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
@@ -342,10 +342,74 @@ export function DraggablePositioning({
             </div>
           </div>
 
+          {/* Font Selection */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Name-Invitation Font</Label>
+              <select
+                className="w-full p-2 border rounded"
+                value={composition.nameFont}
+                onChange={(e) =>
+                  onCompositionChange({
+                    ...composition,
+                    nameFont: e.target.value,
+                  })
+                }
+              >
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Impact">Impact</option>
+                <option value="Comic Sans MS">Comic Sans MS</option>
+                <option value="Trajan Pro">Trajan Pro (Premium)</option>
+                <option value="Optima">Optima</option>
+                <option value="Copperplate">Copperplate</option>
+                <option value="Engravers MT">Engravers MT</option>
+                <option value="Cinzel">Cinzel (Google Fonts)</option>
+                <option value="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Crimson Text">Crimson Text</option>
+                <option value="EB Garamond">EB Garamond</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Designation-Invitation Font</Label>
+              <select
+                className="w-full p-2 border rounded"
+                value={composition.designationFont || composition.nameFont}
+                onChange={(e) =>
+                  onCompositionChange({
+                    ...composition,
+                    designationFont: e.target.value,
+                  })
+                }
+              >
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Impact">Impact</option>
+                <option value="Comic Sans MS">Comic Sans MS</option>
+                <option value="Trajan Pro">Trajan Pro (Premium)</option>
+                <option value="Optima">Optima</option>
+                <option value="Copperplate">Copperplate</option>
+                <option value="Engravers MT">Engravers MT</option>
+                <option value="Cinzel">Cinzel (Google Fonts)</option>
+                <option value="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Crimson Text">Crimson Text</option>
+                <option value="EB Garamond">EB Garamond</option>
+              </select>
+            </div>
+          </div>
+
           {/* Color Controls */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name Color</Label>
+              <Label>Name-Invitation Color</Label>
               <Input
                 type="color"
                 value={composition.nameColor}
@@ -358,7 +422,7 @@ export function DraggablePositioning({
               />
             </div>
             <div className="space-y-2">
-              <Label>Designation Color</Label>
+              <Label>Designation-Invitation Color</Label>
               <Input
                 type="color"
                 value={composition.designationColor || composition.nameColor}

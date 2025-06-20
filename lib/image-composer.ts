@@ -1,4 +1,7 @@
 // FIX: Updated image composer to properly handle designations
+// Import the font utilities
+import { getFontFallback, getFontWeight } from "./font-utils"
+
 export async function composePersonalizedImage(
   backgroundImageUrl: string,
   qrCodeDataUrl: string,
@@ -41,8 +44,10 @@ export async function composePersonalizedImage(
         )
 
         // Draw name text
+        const nameFontFamily = getFontFallback(composition.nameFont || "Arial")
+        const nameFontWeight = getFontWeight(composition.nameFont || "Arial")
         ctx.fillStyle = composition.nameColor || "#000000"
-        ctx.font = `bold ${composition.namePosition.fontSize}px ${composition.nameFont || "Arial"}`
+        ctx.font = `${nameFontWeight} ${composition.namePosition.fontSize}px ${nameFontFamily}`
         ctx.textAlign = "left"
         ctx.textBaseline = "top"
         ctx.fillText(name, composition.namePosition.x, composition.namePosition.y)
@@ -55,8 +60,11 @@ export async function composePersonalizedImage(
             fontSize: Math.max(16, composition.namePosition.fontSize - 8),
           }
 
+          const designationFontFamily = getFontFallback(composition.designationFont || composition.nameFont || "Arial")
+          const designationFontWeight = getFontWeight(composition.designationFont || composition.nameFont || "Arial")
+
           ctx.fillStyle = composition.designationColor || composition.nameColor || "#000000"
-          ctx.font = `${designationPosition.fontSize}px ${composition.designationFont || composition.nameFont || "Arial"}`
+          ctx.font = `${designationFontWeight} ${designationPosition.fontSize}px ${designationFontFamily}`
           ctx.textAlign = "left"
           ctx.textBaseline = "top"
 
