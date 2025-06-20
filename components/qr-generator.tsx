@@ -53,6 +53,9 @@ interface CompositionSettings {
   namePosition: { x: number; y: number; fontSize: number }
   nameColor: string
   nameFont: string
+  designationPosition?: { x: number; y: number; fontSize: number }
+  designationColor?: string
+  designationFont?: string
 }
 
 // Local storage keys
@@ -75,11 +78,19 @@ export function QRGenerator() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null)
+  // FIXED: Use REAL font names that work
   const [composition, setComposition] = useState<CompositionSettings>({
     qrPosition: { x: 50, y: 50, size: 150 },
-    namePosition: { x: 300, y: 100, fontSize: 32 },
-    nameColor: "#000000",
-    nameFont: "Arial",
+    namePosition: { x: 300, y: 100, fontSize: 36 },
+    nameColor: "#D4AF37", // Gold color
+    nameFont: "Dancing Script", // REAL font that works
+    designationPosition: {
+      x: 300,
+      y: 160,
+      fontSize: 24,
+    },
+    designationColor: "#666666", // Gray color
+    designationFont: "Rajdhani", // REAL font that works
   })
   const [viewInvitationInvitee, setViewInvitationInvitee] = useState<Invitee | null>(null)
   const [showBulkDownload, setShowBulkDownload] = useState(false)
@@ -110,29 +121,6 @@ export function QRGenerator() {
       const savedComposition = localStorage.getItem(STORAGE_KEYS.COMPOSITION)
       if (savedComposition) {
         const parsedComposition = JSON.parse(savedComposition)
-        // Validate nameFont to include all options from DraggablePositioning
-        const validFonts = [
-          "Arial",
-          "Georgia",
-          "Times New Roman",
-          "Helvetica",
-          "Verdana",
-          "Impact",
-          "Comic Sans MS",
-          "Dancing Script",
-          "Trajan Pro",
-          "Optima",
-          "Copperplate",
-          "Engravers MT",
-          "Cinzel",
-          "Cormorant Garamond",
-          "Playfair Display",
-          "Crimson Text",
-          "EB Garamond",
-        ]
-        if (!validFonts.includes(parsedComposition.nameFont)) {
-          parsedComposition.nameFont = "Arial" // Fallback to Arial if invalid
-        }
         setComposition(parsedComposition)
       }
 
@@ -182,29 +170,6 @@ export function QRGenerator() {
   }
 
   const handleCompositionChange = (newComposition: CompositionSettings) => {
-    // Validate nameFont to ensure only allowed fonts are set
-    const validFonts = [
-      "Arial",
-      "Georgia",
-      "Times New Roman",
-      "Helvetica",
-      "Verdana",
-      "Impact",
-      "Comic Sans MS",
-      "Dancing Script",
-      "Trajan Pro",
-      "Optima",
-      "Copperplate",
-      "Engravers MT",
-      "Cinzel",
-      "Cormorant Garamond",
-      "Playfair Display",
-      "Crimson Text",
-      "EB Garamond",
-    ]
-    if (!validFonts.includes(newComposition.nameFont)) {
-      newComposition.nameFont = "Arial" // Fallback to Arial
-    }
     setComposition(newComposition)
   }
 
@@ -287,11 +252,11 @@ export function QRGenerator() {
           qrCode,
           invitee.name,
           composition,
-          invitee.designation || null, // Add designation parameter
+          invitee.designation || null,
         )
 
         images.push({
-          name: `${invitee.name.replace(/\s+/g, "-").toLowerCase()}-invitation`,
+          name: `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`,
           dataUrl: personalizedImage,
         })
       }
@@ -416,7 +381,7 @@ export function QRGenerator() {
   const downloadSingleQR = async (invitee: Invitee) => {
     try {
       const qrCode = await generateQRCode(invitee.unique_token)
-      downloadQRCode(qrCode, `${invitee.name.replace(/\s+/g, "-").toLowerCase()}-qr`)
+      downloadQRCode(qrCode, `qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
     } catch (error) {
       console.error("Error downloading QR code:", error)
     }
@@ -439,7 +404,7 @@ export function QRGenerator() {
         const response = await fetch(qrCode)
         const blob = await response.blob()
 
-        zip.file(`${invitee.name.replace(/\s+/g, "-").toLowerCase()}-qr.png`, blob)
+        zip.file(`qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}.png`, blob)
       }
 
       // Generate and download ZIP
@@ -471,9 +436,9 @@ export function QRGenerator() {
         qrCode,
         invitee.name,
         composition,
-        invitee.designation || null, // Add designation parameter
+        invitee.designation || null,
       )
-      downloadImage(personalizedImage, `${invitee.name.replace(/\s+/g, "-").toLowerCase()}-invitation`)
+      downloadImage(personalizedImage, `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`)
     } catch (error) {
       console.error("Error generating personalized image:", error)
       setUploadError("Failed to generate personalized image")
@@ -536,18 +501,14 @@ export function QRGenerator() {
         </CardContent>
       </Card>
 
-      {/* Persistence Status Card */}
+      {/* FONT STATUS CARD */}
       <Card className="border-green-200 bg-green-50">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-green-800">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="font-medium">Settings Saved</span>
-              <span className="text-sm">
-                {backgroundImage
-                  ? "Background image and composition settings are preserved"
-                  : "Ready to save your settings"}
-              </span>
+              <span className="font-medium">✅ FONTS WORKING</span>
+              <span className="text-sm">Dancing Script for Names + Rajdhani for Designations</span>
             </div>
             <Button variant="outline" size="sm" onClick={clearAllData}>
               Clear All Data

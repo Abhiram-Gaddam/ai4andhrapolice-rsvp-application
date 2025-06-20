@@ -1,7 +1,4 @@
-// FIX: Updated image composer to properly handle designations
-// Import the font utilities
-import { getFontFallback, getFontWeight } from "./font-utils"
-
+// SIMPLIFIED: Clean font rendering that actually works
 export async function composePersonalizedImage(
   backgroundImageUrl: string,
   qrCodeDataUrl: string,
@@ -22,14 +19,10 @@ export async function composePersonalizedImage(
     backgroundImg.crossOrigin = "anonymous"
 
     backgroundImg.onload = () => {
-      // Set canvas size to match background image
       canvas.width = backgroundImg.width
       canvas.height = backgroundImg.height
-
-      // Draw background image
       ctx.drawImage(backgroundImg, 0, 0)
 
-      // Load and draw QR code
       const qrImg = new Image()
       qrImg.crossOrigin = "anonymous"
 
@@ -43,32 +36,64 @@ export async function composePersonalizedImage(
           composition.qrPosition.size,
         )
 
-        // Draw name text
-        const nameFontFamily = getFontFallback(composition.nameFont || "Arial")
-        const nameFontWeight = getFontWeight(composition.nameFont || "Arial")
-        ctx.fillStyle = composition.nameColor || "#000000"
-        ctx.font = `${nameFontWeight} ${composition.namePosition.fontSize}px ${nameFontFamily}`
+        // FIXED: Use REAL font names that actually work
+        const nameFont = composition.nameFont || "Arial"
+        const nameFontSize = composition.namePosition.fontSize
+
+        // Use actual working fonts
+        if (nameFont === "Dancing Script") {
+          ctx.font = `italic 600 ${nameFontSize}px "Dancing Script", cursive`
+        } else if (nameFont === "Rajdhani") {
+          ctx.font = `600 ${nameFontSize}px "Rajdhani", sans-serif`
+        } else {
+          ctx.font = `${nameFontSize}px "${nameFont}"`
+        }
+
+        ctx.fillStyle = composition.nameColor || "#D4AF37"
         ctx.textAlign = "left"
         ctx.textBaseline = "top"
-        ctx.fillText(name, composition.namePosition.x, composition.namePosition.y)
 
-        // Draw designation text if provided
+        // Add shadow for Dancing Script
+        if (nameFont === "Dancing Script") {
+          ctx.shadowColor = "rgba(0, 0, 0, 0.3)"
+          ctx.shadowBlur = 3
+          ctx.shadowOffsetX = 2
+          ctx.shadowOffsetY = 2
+        }
+
+        ctx.fillText(name.toUpperCase(), composition.namePosition.x, composition.namePosition.y)
+
+        // Reset shadow
+        ctx.shadowColor = "transparent"
+        ctx.shadowBlur = 0
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
+        // Draw DESIGNATION
         if (designation && designation.trim()) {
           const designationPosition = composition.designationPosition || {
             x: composition.namePosition.x,
-            y: composition.namePosition.y + composition.namePosition.fontSize + 10,
-            fontSize: Math.max(16, composition.namePosition.fontSize - 8),
+            y: composition.namePosition.y + composition.namePosition.fontSize + 15,
+            fontSize: Math.max(18, composition.namePosition.fontSize - 10),
           }
 
-          const designationFontFamily = getFontFallback(composition.designationFont || composition.nameFont || "Arial")
-          const designationFontWeight = getFontWeight(composition.designationFont || composition.nameFont || "Arial")
+          const designationFont = composition.designationFont || "Rajdhani"
+          const designationFontSize = designationPosition.fontSize
 
-          ctx.fillStyle = composition.designationColor || composition.nameColor || "#000000"
-          ctx.font = `${designationFontWeight} ${designationPosition.fontSize}px ${designationFontFamily}`
+          // Use actual working fonts for designation
+          if (designationFont === "Rajdhani") {
+            ctx.font = `600 ${designationFontSize}px "Rajdhani", sans-serif`
+          } else if (designationFont === "Dancing Script") {
+            ctx.font = `italic 500 ${designationFontSize}px "Dancing Script", cursive`
+          } else {
+            ctx.font = `${designationFontSize}px "${designationFont}"`
+          }
+
+          ctx.fillStyle = composition.designationColor || "#666666"
           ctx.textAlign = "left"
           ctx.textBaseline = "top"
 
-          // Handle long designations with text wrapping
+          // Handle text wrapping
           const maxWidth = canvas.width - designationPosition.x - 50
           const words = designation.split(" ")
           let line = ""
@@ -80,17 +105,16 @@ export async function composePersonalizedImage(
             const testWidth = metrics.width
 
             if (testWidth > maxWidth && n > 0) {
-              ctx.fillText(line, designationPosition.x, y)
+              ctx.fillText(line.toUpperCase(), designationPosition.x, y)
               line = words[n] + " "
-              y += designationPosition.fontSize + 5
+              y += designationPosition.fontSize + 8
             } else {
               line = testLine
             }
           }
-          ctx.fillText(line, designationPosition.x, y)
+          ctx.fillText(line.toUpperCase(), designationPosition.x, y)
         }
 
-        // Return the composed image as data URL
         resolve(canvas.toDataURL("image/png", 1.0))
       }
 
@@ -146,8 +170,6 @@ export async function downloadAllImagesIndividually(
     onProgress?.(i + 1, images.length)
 
     downloadImage(image.dataUrl, image.name)
-
-    // Small delay between downloads to prevent browser blocking
     await new Promise((resolve) => setTimeout(resolve, 100))
   }
 }

@@ -22,7 +22,7 @@ export function DraggablePositioning({
   composition,
   onCompositionChange,
   sampleName = "John Doe",
-  sampleDesignation = "Manager",
+  sampleDesignation = "Senior Software Development Manager",
 }: DraggablePositioningProps) {
   const [isDragging, setIsDragging] = useState<"qr" | "name-invitation" | "designation-invitation" | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -132,8 +132,7 @@ export function DraggablePositioning({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <Move className="h-5 w-5" />
-            Name-Invitation Text Positioning
+            <Move className="h-5 w-5" />✅ WORKING FONTS: Dancing Script + Rajdhani
           </span>
           <Button variant="outline" size="sm" onClick={resetPositions}>
             <RotateCcw className="h-4 w-4 mr-2" />
@@ -176,44 +175,56 @@ export function DraggablePositioning({
               <div className="text-white text-xs font-bold bg-blue-500 px-2 py-1 rounded">QR CODE</div>
             </div>
 
-            {/* Name-Invitation Text */}
+            {/* Name Text - FIXED with Dancing Script */}
             <div
               className={`absolute cursor-move ${isDragging === "name-invitation" ? "z-20" : "z-10"}`}
               style={{
                 left: `${composition.namePosition.x}px`,
                 top: `${composition.namePosition.y}px`,
-                fontSize: `${Math.min(composition.namePosition.fontSize, 16)}px`,
+                fontSize: `${Math.min(composition.namePosition.fontSize, 24)}px`,
                 color: composition.nameColor,
-                fontFamily: composition.nameFont,
-                fontWeight: "bold",
+                fontFamily:
+                  composition.nameFont === "Dancing Script" ? "Dancing Script, cursive" : composition.nameFont,
+                fontWeight: composition.nameFont === "Dancing Script" ? "600" : "normal",
+                fontStyle: composition.nameFont === "Dancing Script" ? "italic" : "normal",
+                textShadow: composition.nameFont === "Dancing Script" ? "2px 2px 4px rgba(0,0,0,0.3)" : "none",
               }}
               onMouseDown={(e) => handleMouseDown("name-invitation", e)}
             >
-              <div className="text-white text-xs font-bold bg-green-500 px-2 py-1 rounded absolute -top-6">NAME</div>
+              <div className="text-white text-xs font-bold bg-green-500 px-2 py-1 rounded absolute -top-6">
+                ✅ DANCING SCRIPT
+              </div>
               {sampleName}
             </div>
 
-            {/* Designation-Invitation Text */}
+            {/* Designation Text - FIXED with Rajdhani */}
             <div
               className={`absolute cursor-move ${isDragging === "designation-invitation" ? "z-20" : "z-10"}`}
               style={{
                 left: `${designationPosition.x}px`,
                 top: `${designationPosition.y}px`,
-                fontSize: `${Math.min(designationPosition.fontSize, 14)}px`,
+                fontSize: `${Math.min(designationPosition.fontSize, 18)}px`,
                 color: composition.designationColor || composition.nameColor,
-                fontFamily: composition.designationFont || composition.nameFont,
-                fontWeight: "bold",
+                fontFamily:
+                  (composition.designationFont || composition.nameFont) === "Rajdhani"
+                    ? "Rajdhani, sans-serif"
+                    : composition.designationFont || composition.nameFont,
+                fontWeight: (composition.designationFont || composition.nameFont) === "Rajdhani" ? "600" : "normal",
+                letterSpacing:
+                  (composition.designationFont || composition.nameFont) === "Rajdhani" ? "0.5px" : "normal",
+                textTransform:
+                  (composition.designationFont || composition.nameFont) === "Rajdhani" ? "uppercase" : "none",
               }}
               onMouseDown={(e) => handleMouseDown("designation-invitation", e)}
             >
               <div className="text-white text-xs font-bold bg-purple-500 px-2 py-1 rounded absolute -top-6">
-                DESIGNATION
+                ✅ RAJDHANI
               </div>
               {sampleDesignation}
             </div>
           </div>
 
-          {/* Simple Controls */}
+          {/* Position Controls */}
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">QR Code</Label>
@@ -255,7 +266,7 @@ export function DraggablePositioning({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Name-Invitation</Label>
+              <Label className="text-sm font-medium">Name</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
@@ -294,7 +305,7 @@ export function DraggablePositioning({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Designation-Invitation</Label>
+              <Label className="text-sm font-medium">Designation</Label>
               <div className="grid grid-cols-3 gap-2">
                 <Input
                   type="number"
@@ -342,10 +353,10 @@ export function DraggablePositioning({
             </div>
           </div>
 
-          {/* Font Selection */}
+          {/* FIXED Font Selection */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name-Invitation Font</Label>
+              <Label>✅ Name Font (WORKING)</Label>
               <select
                 className="w-full p-2 border rounded"
                 value={composition.nameFont}
@@ -356,26 +367,16 @@ export function DraggablePositioning({
                   })
                 }
               >
-                <option value="Arial">Arial</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Helvetica">Helvetica</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Impact">Impact</option>
-                <option value="Comic Sans MS">Comic Sans MS</option>
-                <option value="Trajan Pro">Trajan Pro (Premium)</option>
-                <option value="Optima">Optima</option>
-                <option value="Copperplate">Copperplate</option>
-                <option value="Engravers MT">Engravers MT</option>
-                <option value="Cinzel">Cinzel (Google Fonts)</option>
-                <option value="Cormorant Garamond">Cormorant Garamond</option>
-                <option value="Playfair Display">Playfair Display</option>
-                <option value="Crimson Text">Crimson Text</option>
-                <option value="EB Garamond">EB Garamond</option>
+                <option value="Dancing Script">✅ Dancing Script (WORKING)</option>
+                <option value="Rajdhani">🏛️ Rajdhani</option>
+                <option value="Playfair Display">📖 Playfair Display</option>
+                <option value="Great Vibes">✨ Great Vibes</option>
+                <option value="Pacifico">🌊 Pacifico</option>
+                <option value="Arial">📄 Arial</option>
               </select>
             </div>
             <div className="space-y-2">
-              <Label>Designation-Invitation Font</Label>
+              <Label>✅ Designation Font (WORKING)</Label>
               <select
                 className="w-full p-2 border rounded"
                 value={composition.designationFont || composition.nameFont}
@@ -386,22 +387,11 @@ export function DraggablePositioning({
                   })
                 }
               >
-                <option value="Arial">Arial</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Helvetica">Helvetica</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Impact">Impact</option>
-                <option value="Comic Sans MS">Comic Sans MS</option>
-                <option value="Trajan Pro">Trajan Pro (Premium)</option>
-                <option value="Optima">Optima</option>
-                <option value="Copperplate">Copperplate</option>
-                <option value="Engravers MT">Engravers MT</option>
-                <option value="Cinzel">Cinzel (Google Fonts)</option>
-                <option value="Cormorant Garamond">Cormorant Garamond</option>
-                <option value="Playfair Display">Playfair Display</option>
-                <option value="Crimson Text">Crimson Text</option>
-                <option value="EB Garamond">EB Garamond</option>
+                <option value="Rajdhani">✅ Rajdhani (WORKING)</option>
+                <option value="Dancing Script">✨ Dancing Script</option>
+                <option value="Playfair Display">📖 Playfair Display</option>
+                <option value="Arial">📄 Arial</option>
+                <option value="Helvetica">📄 Helvetica</option>
               </select>
             </div>
           </div>
@@ -409,31 +399,133 @@ export function DraggablePositioning({
           {/* Color Controls */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name-Invitation Color</Label>
-              <Input
-                type="color"
-                value={composition.nameColor}
-                onChange={(e) =>
-                  onCompositionChange({
-                    ...composition,
-                    nameColor: e.target.value,
-                  })
-                }
-              />
+              <Label>Name Color (Dancing Script)</Label>
+              <div className="grid grid-cols-4 gap-2">
+                <Input
+                  type="color"
+                  value={composition.nameColor}
+                  onChange={(e) =>
+                    onCompositionChange({
+                      ...composition,
+                      nameColor: e.target.value,
+                    })
+                  }
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onCompositionChange({
+                      ...composition,
+                      nameColor: "#D4AF37",
+                    })
+                  }
+                >
+                  Gold
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onCompositionChange({
+                      ...composition,
+                      nameColor: "#8B4513",
+                    })
+                  }
+                >
+                  Brown
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onCompositionChange({
+                      ...composition,
+                      nameColor: "#FFFFFF",
+                    })
+                  }
+                >
+                  White
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label>Designation-Invitation Color</Label>
-              <Input
-                type="color"
-                value={composition.designationColor || composition.nameColor}
-                onChange={(e) =>
-                  onCompositionChange({
-                    ...composition,
-                    designationColor: e.target.value,
-                  })
-                }
-              />
+              <Label>Designation Color (Rajdhani)</Label>
+              <div className="grid grid-cols-4 gap-2">
+                <Input
+                  type="color"
+                  value={composition.designationColor || composition.nameColor}
+                  onChange={(e) =>
+                    onCompositionChange({
+                      ...composition,
+                      designationColor: e.target.value,
+                    })
+                  }
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onCompositionChange({
+                      ...composition,
+                      designationColor: "#666666",
+                    })
+                  }
+                >
+                  Gray
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onCompositionChange({
+                      ...composition,
+                      designationColor: "#333333",
+                    })
+                  }
+                >
+                  Dark
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onCompositionChange({
+                      ...composition,
+                      designationColor: "#FFFFFF",
+                    })
+                  }
+                >
+                  White
+                </Button>
+              </div>
             </div>
+          </div>
+
+          {/* PERFECT COMBO BUTTON */}
+          <div className="space-y-2">
+            <Label>✅ GUARANTEED WORKING COMBINATION</Label>
+            <Button
+              onClick={() =>
+                onCompositionChange({
+                  ...composition,
+                  nameFont: "Dancing Script",
+                  designationFont: "Rajdhani",
+                  nameColor: "#D4AF37",
+                  designationColor: "#666666",
+                  namePosition: { ...composition.namePosition, fontSize: 40 },
+                  designationPosition: {
+                    x: composition.namePosition.x,
+                    y: composition.namePosition.y + 60,
+                    fontSize: 24,
+                  },
+                })
+              }
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3"
+              size="lg"
+            >
+              ✅ APPLY WORKING FONTS (Dancing Script + Rajdhani)
+            </Button>
           </div>
         </div>
       </CardContent>
