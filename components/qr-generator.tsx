@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -76,25 +75,38 @@ export function QRGenerator() {
   const [uploadError, setUploadError] = useState<string>("")
   const [uploadSuccess, setUploadSuccess] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
-
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null)
-  // FIXED: Use REAL font names that work
   const [composition, setComposition] = useState<CompositionSettings>({
     qrPosition: { x: 50, y: 50, size: 150 },
     namePosition: { x: 300, y: 100, fontSize: 36 },
-    nameColor: "#D4AF37", // Gold color
-    nameFont: "Dancing Script", // REAL font that works
+    nameColor: "#D4AF37",
+    nameFont: "Dancing Script",
     designationPosition: {
       x: 300,
       y: 160,
       fontSize: 24,
     },
-    designationColor: "#666666", // Gray color
-    designationFont: "Rajdhani", // REAL font that works
+    designationColor: "#666666",
+    designationFont: "Rajdhani",
   })
   const [viewInvitationInvitee, setViewInvitationInvitee] = useState<Invitee | null>(null)
   const [showBulkDownload, setShowBulkDownload] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [passwordInput, setPasswordInput] = useState("")
+  const [authError, setAuthError] = useState("")
+  const password = "admin123"
+
+  // Handle password submission
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (passwordInput === password) {
+      setIsAuthenticated(true)
+      setAuthError("")
+    } else {
+      setAuthError("Incorrect password. Please try again.")
+    }
+  }
 
   // Load persisted state on component mount
   useEffect(() => {
@@ -111,19 +123,15 @@ export function QRGenerator() {
 
   const loadPersistedState = () => {
     try {
-      // Load background image
       const savedBackgroundImage = localStorage.getItem(STORAGE_KEYS.BACKGROUND_IMAGE)
       if (savedBackgroundImage) {
         setBackgroundImage(savedBackgroundImage)
       }
-
-      // Load composition settings
       const savedComposition = localStorage.getItem(STORAGE_KEYS.COMPOSITION)
       if (savedComposition) {
         const parsedComposition = JSON.parse(savedComposition)
         setComposition(parsedComposition)
       }
-
       setIsInitialized(true)
     } catch (error) {
       console.error("Error loading persisted state:", error)
@@ -138,7 +146,6 @@ export function QRGenerator() {
       } else {
         localStorage.removeItem(STORAGE_KEYS.BACKGROUND_IMAGE)
       }
-
       localStorage.setItem(STORAGE_KEYS.COMPOSITION, JSON.stringify(composition))
       localStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString())
     } catch (error) {
@@ -151,12 +158,10 @@ export function QRGenerator() {
       setLoading(true)
       const supabase = createClientSideClient()
       const { data, error } = await supabase.from("invitees").select("*").order("created_at", { ascending: true })
-
       if (error) {
         console.error("Error loading invitees:", error)
         return
       }
-
       setInvitees(data || [])
     } catch (error) {
       console.error("Error loading invitees:", error)
@@ -182,17 +187,14 @@ export function QRGenerator() {
     setUploadLoading(true)
     setUploadError("")
     setUploadSuccess("")
-
     try {
       const supabase = createClientSideClient()
       let addedCount = 0
       let skippedCount = 0
       const newInvitees: Invitee[] = []
-
       for (const parsedInvitee of parsedInvitees) {
         if (parsedInvitee.name && parsedInvitee.name.trim()) {
           const uniqueToken = generateUniqueToken()
-
           const { data, error } = await supabase
             .from("invitees")
             .insert({
@@ -202,7 +204,6 @@ export function QRGenerator() {
             })
             .select()
             .single()
-
           if (!error && data) {
             newInvitees.push(data)
             addedCount++
@@ -214,14 +215,11 @@ export function QRGenerator() {
           skippedCount++
         }
       }
-
       if (addedCount > 0) {
         setInvitees((prev) => [...prev, ...newInvitees])
         setUploadSuccess(
           `Successfully added ${addedCount} invitees${skippedCount > 0 ? ` (${skippedCount} skipped)` : ""}`,
         )
-
-        // AUTO-GENERATE INVITATIONS if background image exists
         if (backgroundImage && newInvitees.length > 0) {
           setTimeout(() => autoGenerateInvitations(newInvitees), 1000)
         }
@@ -236,15 +234,11 @@ export function QRGenerator() {
     }
   }
 
-  // AUTO-GENERATION FEATURE
   const autoGenerateInvitations = async (newInvitees: Invitee[]) => {
     if (!backgroundImage || newInvitees.length === 0) return
-
     setLoading(true)
     try {
       const images: { name: string; dataUrl: string }[] = []
-
-      // Generate invitations for all new invitees
       for (const invitee of newInvitees) {
         const qrCode = await generateQRCode(invitee.unique_token)
         const personalizedImage = await composePersonalizedImage(
@@ -254,30 +248,24 @@ export function QRGenerator() {
           composition,
           invitee.designation || null,
         )
-
         images.push({
           name: `invitation-${invitee.name.replace(/\s+/g, "-").toLowerCase()}`,
           dataUrl: personalizedImage,
         })
       }
-
-      // Auto-download as ZIP
       const JSZip = (await import("jszip")).default
       const zip = new JSZip()
-
       for (const image of images) {
         const response = await fetch(image.dataUrl)
         const blob = await response.blob()
         zip.file(`${image.name}.png`, blob)
       }
-
       const zipBlob = await zip.generateAsync({ type: "blob" })
       const link = document.createElement("a")
       link.href = URL.createObjectURL(zipBlob)
       link.download = `auto-generated-invitations-${Date.now()}.zip`
       link.click()
       URL.revokeObjectURL(link.href)
-
       setUploadSuccess(
         `🎉 AUTO-GENERATED ${newInvitees.length} personalized invitations! ZIP file downloaded automatically.`,
       )
@@ -292,26 +280,19 @@ export function QRGenerator() {
   const handleDeleteWithReason = async (invitee: Invitee, reason: string) => {
     try {
       const supabase = createClientSideClient()
-
-      // Log the deletion with reason
       const { error: logError } = await supabase.from("deletion_log").insert({
         invitee_name: invitee.name,
         invitee_token: invitee.unique_token,
         deletion_reason: reason,
       })
-
       if (logError) {
         console.error("Error logging deletion:", logError)
       }
-
-      // Delete the invitee
       const { error } = await supabase.from("invitees").delete().eq("id", invitee.id)
-
       if (error) {
         console.error("Error deleting invitee:", error)
         return
       }
-
       setInvitees((prev) => prev.filter((inv) => inv.id !== invitee.id))
       setDeleteInvitee(null)
     } catch (error) {
@@ -329,12 +310,10 @@ export function QRGenerator() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", invitee.id)
-
       if (error) {
         console.error("Error updating invitee:", error)
         return
       }
-
       setInvitees((prev) => prev.map((inv) => (inv.id === invitee.id ? { ...inv, name: newName.trim() } : inv)))
       setEditInvitee(null)
     } catch (error) {
@@ -345,13 +324,10 @@ export function QRGenerator() {
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
-
     setUploadError("")
     setUploadSuccess("")
-
     try {
       let parsedInvitees: ParsedInvitee[] = []
-
       if (file.name.endsWith(".csv")) {
         parsedInvitees = await parseCSVFile(file)
       } else if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
@@ -360,19 +336,15 @@ export function QRGenerator() {
         setUploadError("Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
         return
       }
-
       if (parsedInvitees.length === 0) {
         setUploadError("No valid data found in the file. Please check the format.")
         return
       }
-
       await addMultipleInvitees(parsedInvitees)
     } catch (error) {
       console.error("Error processing file:", error)
       setUploadError(error instanceof Error ? error.message : "Failed to process file")
     }
-
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -389,25 +361,16 @@ export function QRGenerator() {
 
   const downloadAllQRCodes = async () => {
     if (invitees.length === 0) return
-
     setLoading(true)
     try {
-      // Dynamic import to avoid bundling JSZip if not used
       const JSZip = (await import("jszip")).default
       const zip = new JSZip()
-
-      // Generate QR codes for all invitees
       for (const invitee of invitees) {
         const qrCode = await generateQRCode(invitee.unique_token)
-
-        // Convert data URL to blob
         const response = await fetch(qrCode)
         const blob = await response.blob()
-
         zip.file(`qr-${invitee.name.replace(/\s+/g, "-").toLowerCase()}.png`, blob)
       }
-
-      // Generate and download ZIP
       const zipBlob = await zip.generateAsync({ type: "blob" })
       const link = document.createElement("a")
       link.href = URL.createObjectURL(zipBlob)
@@ -427,7 +390,6 @@ export function QRGenerator() {
       setUploadError("Please upload a background image first")
       return
     }
-
     try {
       setLoading(true)
       const qrCode = await generateQRCode(invitee.unique_token)
@@ -466,7 +428,43 @@ export function QRGenerator() {
     }
   }
 
-  // Show loading state while initializing
+  // Authentication form
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Enter Password</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Enter password"
+                />
+              </div>
+              {authError && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{authError}</AlertDescription>
+                </Alert>
+              )}
+              <Button type="submit" className="w-full">
+                Submit
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Original content
   if (!isInitialized) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -480,7 +478,6 @@ export function QRGenerator() {
 
   return (
     <div className="space-y-6">
-      {/* Back to Home Button */}
       <div className="flex justify-start">
         <Link href="/">
           <Button variant="outline" size="sm">
@@ -489,8 +486,6 @@ export function QRGenerator() {
           </Button>
         </Link>
       </div>
-
-      {/* URL Info Card */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 text-blue-800">
@@ -500,8 +495,6 @@ export function QRGenerator() {
           </div>
         </CardContent>
       </Card>
-
-      {/* FONT STATUS CARD */}
       <Card className="border-green-200 bg-green-50">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
@@ -516,16 +509,12 @@ export function QRGenerator() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Background Image Manager */}
       <BackgroundImageManager
         backgroundImage={backgroundImage}
         onImageChange={handleBackgroundImageChange}
         onCompositionChange={handleCompositionChange}
         composition={composition}
       />
-
-      {/* Draggable Positioning */}
       {backgroundImage && (
         <DraggablePositioning
           backgroundImage={backgroundImage}
@@ -533,22 +522,17 @@ export function QRGenerator() {
           onCompositionChange={handleCompositionChange}
         />
       )}
-
-      {/* Add Invitees Section */}
       <Card>
         <CardHeader>
           <CardTitle>Add Invitees</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Manual Add */}
           <div className="flex gap-4">
             <Button onClick={() => setShowAddModal(true)} className="flex-1">
               <Plus className="h-4 w-4 mr-2" />
               Add Individual Invitee
             </Button>
           </div>
-
-          {/* File Upload */}
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="flex-1">
@@ -567,8 +551,6 @@ export function QRGenerator() {
                 {uploadLoading ? "Processing..." : "Upload File"}
               </Button>
             </div>
-
-            {/* File Format Help */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="text-sm">
                 <p className="font-medium text-blue-900 mb-1">File Format Requirements:</p>
@@ -584,8 +566,6 @@ export function QRGenerator() {
                 </ul>
               </div>
             </div>
-
-            {/* AUTO-GENERATION STATUS */}
             {backgroundImage ? (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex items-start gap-2">
@@ -593,8 +573,7 @@ export function QRGenerator() {
                   <div className="text-sm">
                     <p className="font-medium text-green-900 mb-1">🚀 Auto-Generation ACTIVE</p>
                     <p className="text-green-800">
-                      Excel upload will automatically create personalized invitations and download them as ZIP!
-                    </p>
+                      upload will automatically create personalized invitations and download them as ZIP!</p>
                   </div>
                 </div>
               </div>
@@ -611,15 +590,12 @@ export function QRGenerator() {
                 </div>
               </div>
             )}
-
-            {/* Upload Status Messages */}
             {uploadError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{uploadError}</AlertDescription>
               </Alert>
             )}
-
             {uploadSuccess && (
               <Alert className="border-green-200 bg-green-50">
                 <AlertCircle className="h-4 w-4 text-green-600" />
@@ -629,8 +605,6 @@ export function QRGenerator() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Invitees List */}
       {invitees.length > 0 && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -742,8 +716,6 @@ export function QRGenerator() {
           </CardContent>
         </Card>
       )}
-
-      {/* Modals */}
       {showAddModal && (
         <AddInviteeModal
           onClose={() => setShowAddModal(false)}
@@ -753,9 +725,7 @@ export function QRGenerator() {
           autoGenerateInvitation={true}
         />
       )}
-
       {selectedInvitee && <QRCodeModal invitee={selectedInvitee} onClose={() => setSelectedInvitee(null)} />}
-
       {deleteInvitee && (
         <DeleteConfirmModal
           invitee={deleteInvitee}
@@ -763,11 +733,9 @@ export function QRGenerator() {
           onClose={() => setDeleteInvitee(null)}
         />
       )}
-
       {editInvitee && (
         <EditNameModal invitee={editInvitee} onConfirm={handleEditName} onClose={() => setEditInvitee(null)} />
       )}
-
       {viewInvitationInvitee && backgroundImage && (
         <ViewInvitationModal
           invitee={viewInvitationInvitee}
@@ -776,7 +744,6 @@ export function QRGenerator() {
           onClose={() => setViewInvitationInvitee(null)}
         />
       )}
-
       {showBulkDownload && backgroundImage && (
         <BulkDownloadModal
           invitees={invitees}
