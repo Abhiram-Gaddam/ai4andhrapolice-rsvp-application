@@ -3,7 +3,7 @@ import QRCode from "qrcode"
 export async function generateQRCode(token: string): Promise<string> {
   try {
     // ALWAYS use production URL to avoid hydration issues
-    const url = `https://rsvp-app-beryl.vercel.app/rsvp?id=${token}`
+    const url = `https://ai4andhrapolice-rsvp-application.vercel.app/rsvp?id=${token}`
 
     // Generate ULTRA HIGH QUALITY QR code optimized for bulk operations
     const qrCodeDataURL = await QRCode.toDataURL(url, {
