@@ -45,13 +45,13 @@ export function QRCodeModal({ invitee, onClose }: QRCodeModalProps) {
   }
 
   const copyLink = async () => {
-    const url = `https://rsvp-app-beryl.vercel.app/rsvp?id=${invitee.unique_token}`
+    const url = `https://ai4andhrapolice-rsvp-application.vercel.app/rsvp?id=${invitee.unique_token}`
     await navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const rsvpUrl = `https://rsvp-app-beryl.vercel.app/rsvp?id=${invitee.unique_token}`
+  const rsvpUrl = `https://ai4andhrapolice-rsvp-application.vercel.app/rsvp?id=${invitee.unique_token}`
 
   return (
     <Dialog open={true} onOpenChange={onClose}>

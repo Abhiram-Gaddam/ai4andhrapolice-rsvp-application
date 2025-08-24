@@ -491,7 +491,7 @@ export function QRGenerator() {
           <div className="flex items-center gap-2 text-blue-800">
             <Globe className="h-5 w-5" />
             <span className="font-medium">QR codes will redirect to:</span>
-            <code className="bg-blue-100 px-2 py-1 rounded text-sm">https://rsvp-app-beryl.vercel.app</code>
+            <code className="bg-blue-100 px-2 py-1 rounded text-sm">https://ai4andhrapolice-rsvp-application.vercel.app</code>
           </div>
         </CardContent>
       </Card>
